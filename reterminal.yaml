@@ -121,6 +121,42 @@ color:
 
 # Home Assistant Sensoren für echte Daten
 sensor:
+  # Außentemperatur
+  - platform: homeassistant
+    name: "Outside Temperature"
+    id: outside_temp
+    entity_id: sensor.marcos_reich_aussentemperatur
+
+  # Luftqualität PM2.5
+  - platform: homeassistant
+    name: "Air Quality PM2.5"
+    id: air_quality_pm25
+    entity_id: sensor.luftreiniger_pm2_5
+
+  # 3D Drucker - Düsentemperatur
+  - platform: homeassistant
+    name: "3D Printer Nozzle Temp"
+    id: printer_nozzle_temp
+    entity_id: sensor.bambulab_drucker_temperatur_der_duse
+
+  # 3D Drucker - Druckbett Temperatur
+  - platform: homeassistant
+    name: "3D Printer Bed Temp"
+    id: printer_bed_temp
+    entity_id: sensor.bambulab_drucker_druckbetttemperatur
+
+  # Wohnzimmer Luftfeuchtigkeit
+  - platform: homeassistant
+    name: "Living Room Humidity"
+    id: living_room_humidity
+    entity_id: sensor.wohnzimmer_luftfeuchtigkeit
+
+  # Wohnzimmer Temperatur
+  - platform: homeassistant
+    name: "Living Room Temperature"
+    id: living_room_temp
+    entity_id: sensor.wohnzimmer_temperatur
+
   # Sonnenaufgang (nächster Sonnenaufgang) - DEAKTIVIERT
   # - platform: homeassistant
   #   name: "Sun Next Rising"
@@ -247,6 +283,25 @@ time:
       - logger.log: "RTC synced with network time"
 
 text_sensor:
+  # Einkaufsliste Count
+  - platform: homeassistant
+    name: "Shopping List Count"
+    id: shopping_list_count
+    entity_id: todo.einkaufsliste
+
+  # Media Player - Now Playing
+  - platform: homeassistant
+    name: "Now Playing Title"
+    id: now_playing_title
+    entity_id: media_player.studio
+    attribute: media_title
+
+  - platform: homeassistant
+    name: "Now Playing Artist"
+    id: now_playing_artist
+    entity_id: media_player.studio
+    attribute: media_artist
+
   # Zeit und Datum als Text-Sensoren
   - platform: template
     name: "Current Time"
@@ -373,6 +428,27 @@ text_sensor:
 
 # Binary sensors for buttons
 binary_sensor:
+  # Fenster Status von Home Assistant
+  - platform: homeassistant
+    name: "Living Room Window"
+    id: living_room_window
+    entity_id: binary_sensor.wohnzimmer_fenster
+
+  - platform: homeassistant
+    name: "Kitchen Window"
+    id: kitchen_window
+    entity_id: binary_sensor.kuche_fenster
+
+  - platform: homeassistant
+    name: "Bedroom Window"
+    id: bedroom_window
+    entity_id: binary_sensor.schlafzimmer_fenster
+
+  - platform: homeassistant
+    name: "Bathroom Window"
+    id: bathroom_window
+    entity_id: binary_sensor.badezimmer_fenster
+
   # Button 1 - Refresh Display (KEY0)
   - platform: gpio
     pin:
@@ -588,25 +664,58 @@ display:
           int right_x = MARGIN + left_width + SPACING;
           draw_bordered_area(right_x, grid_start_y, right_width, grid_height, "Service Status");
           
-          // Service Status Inhalt - echte Daten von Home Assistant  
-          it.printf(right_x + 15, grid_start_y + 40, id(inter_medium), id(display_black), 
+          // Service Status Inhalt - System Info
+          it.printf(right_x + 15, grid_start_y + 35, id(inter_small), id(display_blue), "SYSTEM");
+          it.printf(right_x + 15, grid_start_y + 55, id(inter_small), id(display_black),
                    "WiFi: %s", id(wifi_ssid).has_state() ? id(wifi_ssid).state.c_str() : "N/A");
-          it.printf(right_x + 15, grid_start_y + 65, id(inter_medium), id(display_black), 
-                   "IP: %s", id(wifi_ip_local).has_state() ? id(wifi_ip_local).state.c_str() : "N/A");
-          it.printf(right_x + 15, grid_start_y + 90, id(inter_medium), id(display_black), 
-                   "HA API: %s", id(ha_connection).has_state() ? id(ha_connection).state.c_str() : "N/A");
-          it.printf(right_x + 15, grid_start_y + 115, id(inter_medium), id(display_black), 
-                   "Memory: %.0f%%", id(sys_memory).has_state() ? id(sys_memory).state : 0.0f);
-          it.printf(right_x + 15, grid_start_y + 140, id(inter_medium), id(display_black), 
-                   "Uptime: %.0fh", id(sys_uptime).has_state() ? id(sys_uptime).state/3600.0f : 0.0f);
-          it.printf(right_x + 15, grid_start_y + 165, id(inter_medium), id(display_blue), 
-                   "Battery: %.0f%% (%s)", 
-                   id(battery_level).has_state() ? id(battery_level).state : 0.0f,
-                   id(battery_status).has_state() ? id(battery_status).state.c_str() : "N/A");
-          it.printf(right_x + 15, grid_start_y + 190, id(inter_small), id(display_black), 
-                   "Temp: %.1f°C | Hum: %.0f%%", 
+          it.printf(right_x + 15, grid_start_y + 75, id(inter_small), id(display_black),
+                   "HA: %s | Mem: %.0f%%",
+                   id(ha_connection).has_state() ? id(ha_connection).state.c_str() : "N/A",
+                   id(sys_memory).has_state() ? id(sys_memory).state : 0.0f);
+
+          // Environment Info
+          it.printf(right_x + 15, grid_start_y + 105, id(inter_small), id(display_blue), "ENVIRONMENT");
+          it.printf(right_x + 15, grid_start_y + 125, id(inter_small), id(display_black),
+                   "Inside: %.1f°C | %.0f%%",
                    id(internal_temp).has_state() ? id(internal_temp).state : 0.0f,
                    id(internal_humidity).has_state() ? id(internal_humidity).state : 0.0f);
+          it.printf(right_x + 15, grid_start_y + 145, id(inter_small), id(display_black),
+                   "Outside: %.1f°C",
+                   id(outside_temp).has_state() ? id(outside_temp).state : 0.0f);
+          it.printf(right_x + 15, grid_start_y + 165, id(inter_small), id(display_black),
+                   "Living: %.1f°C | %.0f%%",
+                   id(living_room_temp).has_state() ? id(living_room_temp).state : 0.0f,
+                   id(living_room_humidity).has_state() ? id(living_room_humidity).state : 0.0f);
+          it.printf(right_x + 15, grid_start_y + 185, id(inter_small), id(display_black),
+                   "Air Quality: %.0f µg/m³",
+                   id(air_quality_pm25).has_state() ? id(air_quality_pm25).state : 0.0f);
+
+          // Smart Home Status
+          it.printf(right_x + 15, grid_start_y + 215, id(inter_small), id(display_blue), "WINDOWS");
+          it.printf(right_x + 15, grid_start_y + 235, id(inter_small), id(display_black),
+                   "Living: %s | Kitchen: %s",
+                   id(living_room_window).has_state() && id(living_room_window).state ? "OPEN" : "CLOSED",
+                   id(kitchen_window).has_state() && id(kitchen_window).state ? "OPEN" : "CLOSED");
+          it.printf(right_x + 15, grid_start_y + 255, id(inter_small), id(display_black),
+                   "Bed: %s | Bath: %s",
+                   id(bedroom_window).has_state() && id(bedroom_window).state ? "OPEN" : "CLOSED",
+                   id(bathroom_window).has_state() && id(bathroom_window).state ? "OPEN" : "CLOSED");
+
+          // 3D Printer Status
+          it.printf(right_x + 15, grid_start_y + 285, id(inter_small), id(display_blue), "3D PRINTER");
+          it.printf(right_x + 15, grid_start_y + 305, id(inter_small), id(display_black),
+                   "Nozzle: %.0f°C | Bed: %.0f°C",
+                   id(printer_nozzle_temp).has_state() ? id(printer_nozzle_temp).state : 0.0f,
+                   id(printer_bed_temp).has_state() ? id(printer_bed_temp).state : 0.0f);
+
+          // Now Playing
+          if (id(now_playing_title).has_state() && id(now_playing_artist).has_state()) {
+            it.printf(right_x + 15, grid_start_y + 335, id(inter_small), id(display_blue), "NOW PLAYING");
+            it.printf(right_x + 15, grid_start_y + 355, id(inter_small), id(display_black),
+                     "%s", id(now_playing_title).state.c_str());
+            it.printf(right_x + 15, grid_start_y + 375, id(inter_small), id(display_black),
+                     "%s", id(now_playing_artist).state.c_str());
+          }
           
           // Linke Spalte - aufgeteilt in 3 Bereiche
           int left_section_height = grid_height / 3;
@@ -622,22 +731,27 @@ display:
                    TextAlign::CENTER, "%s", 
                    id(current_date).has_state() ? id(current_date).state.c_str() : "Datum nicht verfügbar");
           
-          // Leerer Bereich (mittlere Sektion der linken Spalte)
+          // Batterie & Shopping List (mittlere Sektion der linken Spalte)
           int middle_y = grid_start_y + left_section_height + SPACING;
-          draw_bordered_area(MARGIN, middle_y, left_width, left_section_height - SPACING, "");
-          
-          // Batterie-Informationen
-          it.printf(MARGIN + left_width/2, middle_y + 20, id(inter_medium), id(display_black), 
-                   TextAlign::CENTER, "Batterie Status");
-          it.printf(MARGIN + left_width/2, middle_y + 50, id(inter_large), id(display_blue), 
-                   TextAlign::CENTER, "%.0f%%", 
-                   id(battery_level).has_state() ? id(battery_level).state : 0.0f);
-          it.printf(MARGIN + left_width/2, middle_y + 80, id(inter_small), id(display_black), 
-                   TextAlign::CENTER, "%s", 
+          draw_bordered_area(MARGIN, middle_y, left_width, left_section_height - SPACING, "Batterie & To-Do");
+
+          // Batterie-Informationen (kompakt)
+          it.printf(MARGIN + left_width/2, middle_y + 25, id(inter_medium), id(display_blue),
+                   TextAlign::CENTER, "%.0f%% - %s",
+                   id(battery_level).has_state() ? id(battery_level).state : 0.0f,
                    id(battery_status).has_state() ? id(battery_status).state.c_str() : "Unknown");
-          it.printf(MARGIN + left_width/2, middle_y + 100, id(inter_small), id(display_blue), 
-                   TextAlign::CENTER, "Laufzeit: %s", 
+          it.printf(MARGIN + left_width/2, middle_y + 50, id(inter_small), id(display_black),
+                   TextAlign::CENTER, "Runtime: %s",
                    id(battery_runtime).has_state() ? id(battery_runtime).state.c_str() : "N/A");
+
+          // Shopping List
+          it.printf(MARGIN + left_width/2, middle_y + 80, id(inter_small), id(display_blue),
+                   TextAlign::CENTER, "EINKAUFSLISTE");
+          it.printf(MARGIN + left_width/2, middle_y + 105, id(inter_large), id(display_black),
+                   TextAlign::CENTER, "%s",
+                   id(shopping_list_count).has_state() ? id(shopping_list_count).state.c_str() : "0");
+          it.printf(MARGIN + left_width/2, middle_y + 130, id(inter_small), id(display_black),
+                   TextAlign::CENTER, "Items");
           
           // Gast WLAN QR Code Bereich (untere Sektion der linken Spalte)
           int tools_y = grid_start_y + 2*(left_section_height) + SPACING;
